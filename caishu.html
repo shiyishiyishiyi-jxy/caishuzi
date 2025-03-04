@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字爆炸游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #player-list {
+            margin-top: 20px;
+        }
+
+        #game-message {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>猜数字爆炸游戏</h1>
+    <p>请输入你的名字加入游戏：</p>
+    <input type="text" id="player-name" placeholder="你的名字">
+    <button onclick="addPlayer()">加入游戏</button>
+    <div id="player-list"></div>
+    <p>请输入 0 - 100 之间的数字进行猜测：</p>
+    <input type="number" id="guess-input" min="0" max="100">
+    <button onclick="makeGuess()">猜一猜</button>
+    <div id="game-message"></div>
+
+    <script>
+        // 存储玩家信息
+        let players = [];
+        // 存储当前的神秘数字
+        let secretNumber;
+        // 游戏是否开始
+        let gameStarted = false;
+        // 数字区间
+        let minRange = 0;
+        let maxRange = 100;
+
+        // 加入玩家
+        function addPlayer() {
+            const playerName = document.getElementById('player-name').value;
+            if (playerName &&!players.some(player => player.name === playerName)) {
+                players.push({ name: playerName, alive: true });
+                document.getElementById('player-name').value = '';
+                updatePlayerList();
+                if (!gameStarted) {
+                    startGame();
+                }
+            }
+        }
+
+        // 更新玩家列表显示
+        function updatePlayerList() {
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const playerItem = document.createElement('p');
+                playerItem.textContent = `${player.name}：${player.alive? '存活' : '已出局'}`;
+                playerList.appendChild(playerItem);
+            });
+        }
+
+        // 开始游戏
+        function startGame() {
+            secretNumber = Math.floor(Math.random() * 101);
+            gameStarted = true;
+            minRange = 0;
+            maxRange = 100;
+            document.getElementById('game-message').textContent = '游戏开始，请开始猜测！当前数字范围是 ' + minRange + ' - ' + maxRange;
+        }
+
+        // 玩家猜测
+        function makeGuess() {
+            const guessInput = document.getElementById('guess-input');
+            const guess = parseInt(guessInput.value);
+            const currentPlayer = players.find(player => player.alive);
+
+            if (isNaN(guess) || guess < 0 || guess > 100) {
+                document.getElementById('game-message').textContent = '请输入 0 - 100 之间的有效数字！当前数字范围是 ' + minRange + ' - ' + maxRange;
+                return;
+            }
+
+            if (guess === secretNumber) {
+                currentPlayer.alive = false;
+                document.getElementById('game-message').textContent = `${currentPlayer.name} 猜中了，爆炸出局！`;
+                updatePlayerList();
+                if (players.every(player =>!player.alive)) {
+                    document.getElementById('game-message').textContent = '游戏结束，所有玩家都已出局！';
+                    gameStarted = false;
+                } else {
+                    secretNumber = Math.floor(Math.random() * 101);
+                    minRange = 0;
+                    maxRange = 100;
+                    document.getElementById('game-message').textContent += ' 新的一轮开始，请继续猜测！当前数字范围是 ' + minRange + ' - ' + maxRange;
+                }
+            } else {
+                if (guess < secretNumber) {
+                    minRange = guess + 1;
+                } else {
+                    maxRange = guess - 1;
+                }
+                document.getElementById('game-message').textContent = `${currentPlayer.name} 猜错了，继续等待下一轮猜测！当前数字范围是 ` + minRange + ' - ' + maxRange;
+            }
+
+            guessInput.value = '';
+        }
+    </script>
+</body>
+
+</html>
